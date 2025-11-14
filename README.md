@@ -1,83 +1,141 @@
-# ACTFL English Writing Proficiency Classifier
+# DistilBERT ACTFL-style English Writing Proficiency Classifier
 
-A machine learning system that automatically classifies English writing samples according to **ACTFL (American Council on the Teaching of Foreign Languages)** proficiency levels. This project fine-tunes a DistilBERT model on a labeled corpus of essays and provides both a command-line evaluation tool and an interactive web interface.
+[![Python](https://img.shields.io/badge/Python-3.8+-blue?logo=python&logoColor=white)](https://www.python.org/) [![PyTorch](https://img.shields.io/badge/PyTorch-%3E%3D2.0.0-black?logo=pytorch&logoColor=white)](https://pytorch.org/) [![Transformers](https://img.shields.io/badge/Transformers-HuggingFace-orange?logo=huggingface&logoColor=white)](https://huggingface.co/transformers/) [![Gradio](https://img.shields.io/badge/Gradio-UI-green?logo=gradio&logoColor=white)](https://gradio.app/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
----
-
-# ACTFL English Writing Proficiency Classifier
-
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
-![HuggingFace](https://img.shields.io/badge/HuggingFace-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)
-![Transformers](https://img.shields.io/badge/Transformers-000000?style=for-the-badge&logo=github&logoColor=white)
-![Gradio](https://img.shields.io/badge/Gradio-FF6F00?style=for-the-badge&logo=gradio&logoColor=white)
-![scikit-learn](https://img.shields.io/badge/Scikit--learn-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white)
-![Pandas](https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white)
-![NumPy](https://img.shields.io/badge/Numpy-013243?style=for-the-badge&logo=numpy&logoColor=white)
+**A self-hosted pipeline that trains a DistilBERT-based classifier to map English learner essays to ACTFL-like proficiency buckets (10 classes: Novice Low → Superior).** Includes data preparation, augmentation from Hugging Face CommonLit readability data, training with class-weighted loss, evaluation with real confusion matrices, and a simple Gradio demo for inference.
 
 ---
 
 ## 📋 Table of Contents
 
-- [Project Overview](#project-overview)
-- [Features](#features)
+- [Quick Start (PowerShell)](#quick-start-powershell)
+- [At-a-Glance](#at-a-glance)
+- [Repository Structure](#repository-structure)
+- [Data Sources & Placement](#data-sources--placement)
 - [ACTFL Proficiency Levels](#actfl-proficiency-levels)
-- [Architecture & Model](#architecture--model)
+- [Model Card & Performance](#model-card--performance)
+- [Architecture & Training](#architecture--training)
 - [Installation](#installation)
-- [Dataset](#dataset)
-- [Usage](#usage)
-  - [Training](#training)
-  - [Evaluation](#evaluation)
-  - [Interactive Web Interface](#interactive-web-interface)
-  - [Data Preparation & Augmentation](#data-preparation--augmentation)
-- [Project Structure](#project-structure)
-- [Technical Details](#technical-details)
-- [Results](#results)
-- [⚠️ Limitations & Current Development Status](#%EF%B8%8F-limitations--current-development-status)
+- [Usage Guide](#usage-guide)
+  - [1. Prepare Labeled Data](#1-prepare-labeled-data)
+  - [2. (Optional) Augment with CommonLit](#2-optional-augment-with-commonlit)
+  - [3. Train](#3-train)
+  - [4. Evaluate](#4-evaluate)
+  - [5. Interactive Inference](#5-interactive-inference)
+- [Technical Implementation](#technical-implementation)
+- [⚠️ Limitations & Reliability](#️-limitations--reliability)
+- [Contributing & Data Collection](#contributing--data-collection)
 - [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [Connect With Me](#connect-with-me)
-- [License](#license)
+- [License & Contact](#license--contact)
 
 ---
 
-## 🎯 Project Overview
+## 🚀 Quick Start (PowerShell)
 
-This project builds an **automated English writing proficiency classifier** that evaluates essay submissions and assigns them an ACTFL proficiency level. It's designed to help educators, language learning platforms, and assessment systems quickly evaluate written English proficiency without manual scoring.
+**1. Create & activate virtual environment:**
+```powershell
+python -m venv venv
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser   # one-time if needed
+.\venv\Scripts\Activate.ps1
+```
 
-### Key Objectives:
+**2. Install dependencies:**
+```powershell
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
 
-1. **Automated Classification**: Classify essays into 10 ACTFL proficiency levels
-2. **High Accuracy**: Leverage pre-trained language models for robust predictions
-3. **Scalability**: Handle large volumes of student essays efficiently
-4. **Interpretability**: Provide confidence scores with predictions
-5. **User-Friendly**: Offer both programmatic API and interactive web interface
+**3. Prepare labeled data:**
+```powershell
+python script.py
+# → creates: asap_actfl_labeled.csv
+```
+
+**4. (Optional) Augment with CommonLit high-proficiency samples:**
+```powershell
+python prepare_hf_augmented.py
+# → creates: asap_plus_hf.csv
+```
+
+**5. Train model:**
+```powershell
+python train.py
+# → generates: model_output/ (checkpoints) and distilbert-actfl-english/ (final model)
+```
+
+**6. Evaluate:**
+```powershell
+python eval.py
+# → prints confusion matrix, metrics, per-class accuracy
+```
+
+**7. Launch interactive demo:**
+```powershell
+python app.py
+# → opens Gradio UI at http://localhost:7860
+```
 
 ---
 
-## ✨ Features
+## 📌 At-a-Glance
 
-- ✅ **Multi-class Classification**: 10 ACTFL proficiency levels (Novice Low → Superior)
-- ✅ **Pre-trained Model**: Fine-tuned DistilBERT with class-weighted training
-- ✅ **Data Augmentation**: Augments limited training data with high-proficiency samples
-- ✅ **Class Imbalance Handling**: Custom weighted loss function for balanced training
-- ✅ **Evaluation Metrics**: Accuracy, macro F1-score, and confusion matrix analysis
-- ✅ **Web Interface**: Gradio-based GUI for easy inference
-- ✅ **Checkpoint Management**: Multiple model checkpoints during training
-- ✅ **Reproducibility**: Fixed random seeds and detailed logging
+What's in this repository:
+
+✅ **Data pipeline**: ASAP raw data → ACTFL-labeled CSV with 10 proficiency bins  
+✅ **Augmentation**: Optional CommonLit Ease-of-Readability integration for high-proficiency classes  
+✅ **Training**: Hugging Face `Trainer` with class-weighted loss to handle imbalance  
+✅ **Evaluation**: Confusion matrix, per-class accuracy, macro F1-score  
+✅ **Inference UI**: Gradio app for single-essay predictions  
+✅ **Model artifacts**: Saved model (`distilbert-actfl-english/`) and checkpoints (`model_output/`)  
+✅ **Reproducibility**: All hyperparameters and random seeds explicit in `train.py`
+
+---
+
+## 📁 Repository Structure
+
+```
+.
+├─ asap-aes/                           # Place ASAP TSV files here (training_set_rel3.tsv, etc.)
+├─ asap_actfl_labeled.csv              # Created by script.py
+├─ asap_plus_hf.csv                    # Created by prepare_hf_augmented.py (optional)
+├─ script.py                           # Label ASAP rubric scores → ACTFL bins
+├─ prepare_hf_augmented.py             # Augment with CommonLit readability samples
+├─ train.py                            # Training script (HF Trainer, class-weighted loss)
+├─ eval.py                             # Evaluation script (confusion matrix + metrics)
+├─ app.py                              # Gradio inference UI
+├─ distilbert-actfl-english/           # Final saved model (after training)
+├─ model_output/                       # Trainer checkpoints and logs
+├─ requirements.txt                    # Python dependencies
+├─ LICENSE
+├─ MODEL_CARD.md                       # Detailed model card (datasets, metrics)
+└─ README.md                           # This file
+```
+
+---
+
+## 📊 Data Sources & Placement
+
+| Dataset | Source | Purpose | Size |
+|---------|--------|---------|------|
+| **ASAP AES** | [Kaggle Competition](https://www.kaggle.com/competitions/asap-aes) | Primary labeled essays (rubric scores) | ~12,976 examples |
+| **CommonLit Ease-of-Readability** | [Hugging Face](https://huggingface.co/datasets/casey-martin/CommonLit-Ease-of-Readability) | Augment high-proficiency classes (Flesch Reading Ease filter) | ~355 Superior + ~354 Advanced High |
+
+**Setup:**
+- Download ASAP training/validation TSV files and place in `asap-aes/` folder
+- CommonLit is auto-downloaded by `prepare_hf_augmented.py` if augmentation is needed
 
 ---
 
 ## 🗣️ ACTFL Proficiency Levels
 
-The ACTFL Proficiency Guidelines provide a framework for evaluating language proficiency. The 10 levels used in this project are:
+The ACTFL Proficiency Guidelines framework used in this project (10 levels):
 
-| Level | Classification | Characteristics |
-|-------|---|---|
-| **Novice Low** | Beginning | Limited vocabulary, frequent errors, simple sentences |
-| **Novice Mid** | Beginning | Emerging patterns, isolated words/phrases, basic structures |
-| **Novice High** | Beginning | Simple sentences, common topics, comprehensible with effort |
-| **Intermediate Low** | Intermediate | Expanded vocabulary, paragraphs, generally understandable |
+| Level | Tier | Description |
+|-------|------|-------------|
+| **Novice Low** | Beginner | Limited vocabulary, frequent errors, simple sentences |
+| **Novice Mid** | Beginner | Emerging patterns, isolated words/phrases, basic structures |
+| **Novice High** | Beginner | Simple sentences, common topics, comprehensible with effort |
+| **Intermediate Low** | Intermediate | Expanded vocabulary, short paragraphs, generally understandable |
 | **Intermediate Mid** | Intermediate | Consistent structures, varied topics, occasional errors |
 | **Intermediate High** | Intermediate | Complex ideas, detailed descriptions, minor errors |
 | **Advanced Low** | Advanced | Abstract concepts, varied register, sophisticated vocabulary |
@@ -87,762 +145,542 @@ The ACTFL Proficiency Guidelines provide a framework for evaluating language pro
 
 ---
 
-## 🏗️ Architecture & Model
+## 📋 Model Card & Performance
 
-### Model Architecture
+### Best Reported Evaluation (Final Run)
+
+| Metric | Value |
+|--------|-------|
+| **Accuracy** | 0.9291 (92.91%) |
+| **Macro F1** | 0.4417 |
+| **Eval Loss** | 0.2392 |
+
+### Per-Class Accuracy (Real Results)
+
+| Label | Correct / Total | Accuracy |
+|-------|--------|----------|
+| Novice Low | 1819 / 1833 | **99.24%** |
+| Novice Mid | 346 / 376 | **92.02%** |
+| Novice High | 112 / 142 | **78.87%** |
+| Intermediate Low | 65 / 97 | **67.01%** |
+| **Intermediate Mid** | **0 / 15** | **0.00%** ⚠️ |
+| Intermediate High | 27 / 55 | **49.09%** |
+| Advanced Low | 43 / 61 | **70.49%** |
+| **Advanced Mid** | **0 / 13** | **0.00%** ⚠️ |
+| **Advanced High** | **0 / 3** | **0.00%** ⚠️ |
+| **Superior** | **0 / 1** | **0.00%** ⚠️ |
+
+**⚠️ Key Observation:** High overall accuracy (92.91%) is **heavily driven by Novice Low dominance** (1833/2596 = 70% of evaluation set). Higher-proficiency classes are severely under-represented and have poor per-class accuracy. See [Limitations & Reliability](#️-limitations--reliability) for critical details.
+
+### Confusion Matrix (Real Data)
 
 ```
-Input Text
-    ↓
-Tokenizer (DistilBERT-base-uncased)
-    ↓
-[CLS] token + Tokens + Padding (max_length=256)
-    ↓
-Attention Mask
-    ↓
-DistilBERT Encoder
-    • 6 transformer layers
-    • 12 attention heads
-    • 66M parameters (60% smaller than BERT)
-    ↓
-[CLS] Hidden State (768-dim)
-    ↓
-Classification Head (768 → 10 classes)
-    ↓
-Softmax Probabilities
-    ↓
-ACTFL Level + Confidence Score
+              Predicted →
+              NL  NM  NH  IL  IM  IH  AL  AM  AH  Su
+Novice Low    1819 14   0   0   0   0   0   0   0   0
+Novice Mid      4 346  25   1   0   0   0   0   0   0
+Novice High     2  10 112  18   0   0   0   0   0   0
+Intermediate L  3   0  27  65   1   1   0   0   0   0
+Intermediate M  0   0   1   0   0  11   3   0   0   0
+Intermediate H  0   0   0   2   0  27  26   0   0   0
+Advanced Low    0   0   0   1   0  17  43   0   0   0
+Advanced Mid    0   0   0   0   0   1  12   0   0   0
+Advanced High   0   0   0   0   0   0   3   0   0   0
+Superior        0   0   0   1   0   0   0   0   0   0
 ```
-
-### Why DistilBERT?
-
-- **Efficient**: 60% smaller and 40% faster than BERT
-- **Effective**: Retains 97% of BERT's performance
-- **Production-Ready**: Suitable for deployment on limited hardware
-- **Pre-trained**: Learns from 12GB+ of English text
-- **Transfer Learning**: Fine-tuning on domain-specific essays is efficient
-
-### Training Strategy
-
-**Class-Weighted Loss Function**: Essays are imbalanced across ACTFL levels. The model uses inverse-frequency weighting to prevent bias toward common classes:
-
-$$\text{weight}_c = \frac{\text{total samples}}{n\_classes \times \text{samples in class}_c}$$
-
-This ensures the model learns equally well across all proficiency levels.
 
 ---
 
-## 🚀 Installation
+## 🏗️ Architecture & Training
+
+### Model Specification
+
+- **Base:** `distilbert-base-uncased` (66M parameters, 60% smaller than BERT)
+- **Tokenizer:** DistilBERT WordPiece tokenizer
+- **Output Head:** Linear layer (768 → 10 ACTFL classes)
+- **Why DistilBERT?** Efficient, effective (97% BERT performance), production-ready, pre-trained on 12GB+ English text
+
+### Training Configuration
+
+| Parameter | Value |
+|-----------|-------|
+| Max Sequence Length | 256 tokens (~1000 words) |
+| Batch Size | 8 (train & eval) |
+| Learning Rate | 2e-5 |
+| Epochs | 3 |
+| Weight Decay | 0.01 |
+| Loss Function | Class-weighted CrossEntropy |
+| Optimization | AdamW (Hugging Face Trainer) |
+| Train / Validation Split | 80 / 20 |
+
+### Class Weighting
+
+To handle imbalance, the model uses inverse-frequency weighting:
+
+$$\text{weight}_c = \frac{\text{total samples}}{n\_\text{classes} \times \text{samples in class}_c}$$
+
+This forces the model to allocate more learning capacity to underrepresented classes.
+
+---
+
+## 💾 Installation
 
 ### Prerequisites
 
-- **Python**: 3.8 or higher
-- **CUDA** (Optional, for GPU acceleration): NVIDIA GPU with CUDA Toolkit 11.8+
-- **Git**: For cloning the repository
+- **Python:** 3.8 or higher
+- **CUDA (Optional):** For GPU acceleration (NVIDIA GPU with CUDA 11.8+)
+- **Git:** For cloning
 
-### Step 1: Clone the Repository
+### Setup Steps
 
-```bash
+```powershell
+# Step 1: Clone
 git clone <repository-url>
 cd English
-```
 
-### Step 2: Create Virtual Environment
-
-**Windows:**
-```bash
+# Step 2: Create venv
 python -m venv venv
-venv\Scripts\activate
+.\venv\Scripts\Activate.ps1
+
+# Step 3: Install deps
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+
+# Step 4: Verify
+python -c "import torch; print(f'PyTorch: {torch.__version__}'); import transformers; print(f'Transformers: {transformers.__version__}')"
 ```
 
-**macOS/Linux:**
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### Step 3: Install Dependencies
-
-```bash
-pip install --upgrade pip setuptools wheel
-pip install -r requirements.txt
-```
-
-**Dependencies Include:**
-- `torch` - PyTorch deep learning framework
-- `transformers` - Hugging Face transformers library
-- `datasets` - Hugging Face datasets library
-- `scikit-learn` - Machine learning metrics
-- `numpy` - Numerical computing
-- `pandas` - Data manipulation
-- `gradio` - Web interface
-- `matplotlib` - Plotting
-- `lxml` - XML parsing
-
-### Step 4: Download Pre-trained Model (Optional)
-
-If you want to use the pre-trained model without training:
-
-```bash
-# The model is included in: distilbert-actfl-english/
-# Verify the following files exist:
-ls distilbert-actfl-english/
-# Should contain: config.json, model.safetensors, tokenizer.json, vocab.txt, etc.
-```
+**Key Dependencies:**
+- `torch` — PyTorch framework
+- `transformers` — Hugging Face models & Trainer
+- `datasets` — HF datasets library
+- `scikit-learn` — Evaluation metrics
+- `pandas` — Data manipulation
+- `gradio` — Web UI
+- `numpy`, `matplotlib` — Numerics & plotting
 
 ---
 
-## 📊 Dataset
+## 📖 Usage Guide
 
-### Data Sources
+### 1. Prepare Labeled Data
 
-1. **ASAP Dataset**: ASAP Automated Student Assessment Prize competition data
-   - ~12,000 essays with proficiency labels
-   - Manually annotated with ACTFL levels
+```powershell
+python script.py
+```
 
-2. **CommonLit Ease-of-Readability Dataset** (Augmentation):
-   - High-quality text passages with readability metrics
-   - Used to augment "Superior" and "Advanced High" samples
-   - Maps Flesch Reading Ease scores to ACTFL levels
+**What it does:**
+- Reads ASAP TSV files from `asap-aes/`
+- Bins `domain1_score` into 10 quantile buckets using `pd.qcut`
+- Maps buckets to ACTFL labels: Novice Low, ..., Superior
+- Outputs: `asap_actfl_labeled.csv` (essay + actfl_level columns)
 
-### Data Format
-
-Essays are stored in CSV format with columns:
-- `essay`: The full text of the student essay
-- `actfl_level`: Target ACTFL proficiency level (Novice Low → Superior)
-
-**Example:**
+**Output example:**
 ```csv
 essay,actfl_level
 "The sun is bright and I like it.",Novice Low
-"Learning languages is important for global communication.",Intermediate Mid
-"The intricate interplay between...",Advanced High
+"Learning languages is important for communication.",Intermediate Mid
 ```
-
-### Data Split
-
-- **Training Set**: 80% (~9,600 essays)
-- **Validation Set**: 20% (~2,400 essays)
 
 ---
 
-## 📖 Usage
+### 2. (Optional) Augment with CommonLit
 
-### 1️⃣ Training
+```powershell
+python prepare_hf_augmented.py
+```
 
-Train a new model from scratch on the labeled essay dataset:
+**What it does:**
+- Downloads CommonLit readability dataset from Hugging Face
+- Selects top 10% easiest passages → "Superior"
+- Selects top 10-20% easiest passages → "Advanced High"
+- Combines with ASAP data
+- Outputs: `asap_plus_hf.csv` (~13,685 total examples)
 
-```bash
+**Use in training:**
+Edit `train.py` line `data_files = {"data": "asap_actfl_labeled.csv"}` to point to `asap_plus_hf.csv`
+
+---
+
+### 3. Train
+
+```powershell
 python train.py
 ```
 
-**What Happens:**
-1. Loads `asap_actfl_labeled.csv`
-2. Splits into 80% train, 20% validation
-3. Tokenizes essays (max 256 tokens)
-4. Initializes DistilBERT base model with 10-class head
-5. Trains with class-weighted loss for 3 epochs
-6. Saves checkpoints every 500 steps
-7. Saves final fine-tuned model to `distilbert-actfl-english/`
+**What happens:**
+1. Loads labeled CSV (80% train, 20% validation)
+2. Tokenizes essays (max 256 tokens)
+3. Initializes DistilBERT + 10-class head
+4. Fine-tunes for 3 epochs with class-weighted loss
+5. Saves checkpoints every 500 steps → `model_output/checkpoint-*`
+6. Saves final model → `distilbert-actfl-english/`
 
-**Training Parameters:**
-- Learning Rate: 2e-5
-- Batch Size: 8 (per device)
-- Epochs: 3
-- Max Sequence Length: 256 tokens
-- Optimizer: AdamW
-- Warmup: Included in TrainingArguments
+**Estimated time:**
+- GPU (RTX 3080): 2-3 hours
+- CPU: 15-20 hours
 
-**Output:**
-```
-Training results saved to: model_output/
-- checkpoint-500/, checkpoint-1000/, ..., checkpoint-3894/
-- training logs in logs/
+---
 
-Final model saved to: distilbert-actfl-english/
-```
+### 4. Evaluate
 
-**Estimated Training Time:**
-- GPU (NVIDIA RTX 3080): ~2-3 hours
-- CPU: ~15-20 hours
-
-### 2️⃣ Evaluation
-
-Evaluate the trained model on the validation set:
-
-```bash
+```powershell
 python eval.py
 ```
 
 **Output:**
-```
-▶ Starting evaluation on validation split...
+- Confusion matrix (rows = true labels, cols = predictions)
+- Per-class accuracy table
+- Overall accuracy, macro F1, loss
+- Example: See [Model Card & Performance](#model-card--performance) above
 
-Confusion Matrix:
- [[150   12    3  ...],
-  [ 10  320   25  ...],
-  ...]
+---
 
-✅ Evaluation Results: 
-{'eval_loss': 0.8234, 'accuracy': 0.8456, 'f1_macro': 0.8123}
-```
+### 5. Interactive Inference
 
-**Metrics Explained:**
-- **Accuracy**: Percentage of correct predictions
-- **F1-Macro**: Unweighted average F1 across all classes (good for imbalanced data)
-- **Confusion Matrix**: Shows which classes are confused with each other
-
-### 3️⃣ Interactive Web Interface
-
-Launch the Gradio web app for easy inference:
-
-```bash
+```powershell
 python app.py
 ```
 
-**Features:**
-- Paste or type your essay
-- Get instant ACTFL proficiency level prediction
-- See confidence score
-- Beautiful, user-friendly interface
+**Then:**
+1. Open browser to printed URL (usually `http://localhost:7860`)
+2. Paste or type essay text
+3. Get predicted ACTFL level + confidence scores
 
-**Access the app:**
-- Open browser: `http://localhost:7860`
-- Share link available for temporary public access
-
-**Example Input:**
+**Example input:**
 ```
-I went to the store yesterday. I bought milk and bread. 
+I went to the store yesterday. I bought milk and bread.
 The store was very big. I like shopping there.
 ```
 
-**Example Output:**
+**Example output:**
 ```
 Predicted ACTFL Level: Novice Mid
-Confidence: 0.87
-```
-
-### 4️⃣ Data Preparation & Augmentation
-
-If you need to augment the training data with high-proficiency samples:
-
-```bash
-python prepare_hf_augmented.py
-```
-
-**What Happens:**
-1. Loads `asap_actfl_labeled.csv`
-2. Downloads CommonLit Ease-of-Readability dataset
-3. Selects top 10% easiest passages → "Superior"
-4. Selects top 10-20% easiest passages → "Advanced High"
-5. Combines with original ASAP data
-6. Saves augmented dataset to `asap_plus_hf.csv`
-
-**Use augmented data for training:**
-```python
-# Modify train.py to use augmented data:
-data_files = {"data": "asap_plus_hf.csv"}  # Instead of asap_actfl_labeled.csv
+Probabilities:
+  Novice Low: 0.05
+  Novice Mid: 0.82  ← highest
+  Novice High: 0.10
+  ...
 ```
 
 ---
 
-## 📁 Project Structure
+## 🔬 Technical Implementation
 
-```
-English/
-├── README.md                              # This file
-├── requirements.txt                       # Python dependencies
-├── app.py                                 # Gradio web interface
-├── train.py                               # Training script
-├── eval.py                                # Evaluation script
-├── prepare_hf_augmented.py               # Data augmentation script
-├── script.py                              # Utility/helper functions
-│
-├── distilbert-actfl-english/             # ✅ Pre-trained model (final)
-│   ├── config.json
-│   ├── model.safetensors
-│   ├── tokenizer.json
-│   ├── tokenizer_config.json
-│   ├── vocab.txt
-│   └── special_tokens_map.json
-│
-├── model_output/                         # Training checkpoints
-│   ├── checkpoint-500/
-│   ├── checkpoint-1000/
-│   ├── checkpoint-1500/
-│   ├── checkpoint-2000/
-│   ├── checkpoint-2500/
-│   ├── checkpoint-3000/
-│   ├── checkpoint-3500/
-│   └── checkpoint-3894/
-│
-├── asap-aes/                             # Original ASAP dataset (git-ignored)
-│   ├── training_set_rel3.tsv
-│   ├── valid_set.tsv
-│   ├── test_set.tsv
-│   └── Essay_Set_Descriptions/
-│
-├── .vscode/                              # VS Code settings
-│   └── settings.json
-│
-└── .gitignore                            # Git ignore patterns
-```
-
----
-
-## 🔬 Technical Details
-
-### Tokenization
-
-Essays are tokenized using DistilBERT's WordPiece tokenizer:
+### Tokenization Pipeline
 
 ```python
 inputs = tokenizer(
     essay_text,
     truncation=True,          # Truncate to max_length
     padding="max_length",     # Pad to max_length
-    max_length=256,           # 256 tokens (reasonable for essays)
-    return_tensors="pt"       # PyTorch format
+    max_length=256,           # 256 tokens ≈ ~1000 words
+    return_tensors="pt"       # PyTorch tensors
 )
 # Returns: input_ids, token_type_ids, attention_mask
 ```
 
-**Max Length Choice:**
-- 256 tokens ≈ ~1000 words (covers most student essays)
-- Longer sequences hurt performance and increase memory
+**Max length rationale:**
+- 256 tokens covers ~99% of student essays
+- Longer sequences increase memory & training time
 - Shorter sequences lose information
 
-### Inference Pipeline
+### Inference (Forward Pass)
 
 ```python
-# 1. Tokenize input
+# 1. Tokenize
 inputs = tokenizer(text, truncation=True, max_length=256, return_tensors="pt")
 
-# 2. Forward pass
+# 2. Forward pass (no gradients)
 with torch.no_grad():
     outputs = model(**inputs)
-    logits = outputs.logits  # Shape: [batch_size, 10]
+    logits = outputs.logits  # [batch, 10]
 
-# 3. Convert to probabilities
-probabilities = torch.softmax(logits, dim=-1)  # Sum to 1.0
+# 3. Probabilities
+probs = torch.softmax(logits, dim=-1)  # sum = 1.0
 
-# 4. Get top prediction
-predicted_class = torch.argmax(probabilities)
-confidence = probabilities[predicted_class]
+# 4. Top prediction
+pred_idx = torch.argmax(probs, dim=-1)
+confidence = probs[0, pred_idx]
 
 # 5. Map to ACTFL label
-level = LABELS[predicted_class]
+label = ACTFL_LABELS[pred_idx]
 ```
 
-### Loss Function (Class-Weighted CrossEntropy)
+### Label Mapping (Index ↔ Label)
 
 ```python
-class_weights = torch.tensor([w1, w2, ..., w10])  # Computed from data
-loss_fn = torch.nn.CrossEntropyLoss(weight=class_weights)
-loss = loss_fn(logits, labels)
+ACTFL_LABELS = [
+    "Novice Low",         # 0
+    "Novice Mid",         # 1
+    "Novice High",        # 2
+    "Intermediate Low",   # 3
+    "Intermediate Mid",   # 4
+    "Intermediate High",  # 5
+    "Advanced Low",       # 6
+    "Advanced Mid",       # 7
+    "Advanced High",      # 8
+    "Superior"            # 9
+]
 ```
-
-Higher weights for underrepresented classes force the model to learn them better.
-
-### Hyperparameters
-
-| Parameter | Value | Rationale |
-|-----------|-------|-----------|
-| Learning Rate | 2e-5 | Standard for fine-tuning BERT-like models |
-| Batch Size | 8 | Balance memory and gradient stability |
-| Epochs | 3 | Sufficient for convergence without overfitting |
-| Weight Decay | 0.01 | L2 regularization |
-| Max Length | 256 | Covers ~99% of essays |
-| Eval Steps | 500 | Evaluate every 500 training steps |
 
 ---
 
-## 📈 Results
+## ⚠️ Limitations & Reliability
 
-### Training Performance
+### 🚨 Critical Issue: Severe Class Imbalance
 
-Expected results on ASAP dataset:
+**The model's predictions are heavily skewed by training data distribution.** This is the single most important limitation to understand:
 
-| Metric | Value |
-|--------|-------|
-| **Accuracy** | ~84-86% |
-| **Macro F1** | ~81-83% |
-| **Training Time** | 2-3 hours (GPU) |
-| **Model Size** | ~267 MB |
+#### The Problem
 
-### Per-Class Performance
+- **Novice Low:** 1,833 examples (70% of eval set)
+- **Novice Mid:** 376 examples (14%)
+- **Intermediate High:** 55 examples (2%)
+- **Superior:** 1 example (0.04%)
 
-```
-                  Precision  Recall  F1-Score  Support
-Novice Low          0.82      0.79      0.80      145
-Novice Mid          0.85      0.84      0.84      289
-Novice High         0.81      0.83      0.82      198
-Intermediate Low    0.84      0.85      0.85      256
-Intermediate Mid    0.87      0.86      0.86      312
-Intermediate High   0.88      0.87      0.88      267
-Advanced Low        0.89      0.88      0.88      204
-Advanced Mid        0.91      0.90      0.90      189
-Advanced High       0.92      0.91      0.92      156
-Superior            0.94      0.93      0.93      98
-```
+Result: **Novice Low dominates predictions.** Even though overall accuracy is 92.91%, this is almost entirely because the model learned to predict Novice Low accurately. Higher proficiency classes (Superior, Advanced High, Intermediate Mid) have **0% per-class accuracy** due to extreme under-representation.
 
-### Confusion Patterns
+#### Impact on Usage
 
-- **Novice-Intermediate Boundary**: Small confusion as levels overlap
-- **Advanced-Superior**: Well-separated; rarely confused
-- **Within-Level Confusion**: Minimal (e.g., Novice Mid ↔ Novice High)
+✅ **Reliable (Safe to Use):**
+- Classifying Novice-level writing (Novice Low/Mid)
+- Filtering clearly beginner essays
+- Research & development
 
----
+❌ **Unreliable (NOT Safe):**
+- Classifying Advanced or Superior writing
+- High-stakes decisions (grading, placement)
+- Production systems without human review
+- Any classification without checking per-class accuracy in confusion matrix
 
-## ⚠️ Limitations & Current Development Status
+### Class Imbalance: Why Weighting Isn't Enough
 
-### 🚧 Model Under Development
-
-**This model is ACTIVELY UNDER DEVELOPMENT.** The current version included in this repository represents an early/intermediate stage classifier that should be used with caution in production environments.
-
-### Data Imbalance: Critical Issue
-
-#### Problem: Skewed Output Due to Unequal Training Data
-
-The model's predictions are **significantly skewed** by the distribution of training data. This is one of the most critical limitations:
-
-```
-Current Dataset Distribution (Illustrative):
-┌─────────────────────────────────────────────┐
-│ ACTFL Level      │ Training Samples │ %     │
-├─────────────────────────────────────────────┤
-│ Novice Low       │ 145              │ 6.0%  │
-│ Novice Mid       │ 289              │ 12%   │
-│ Novice High      │ 198              │ 8.2%  │
-│ Intermediate Low │ 256              │ 10.6% │
-│ Intermediate Mid │ 312              │ 12.9% │
-│ Intermediate High│ 267              │ 11.1% │
-│ Advanced Low     │ 204              │ 8.5%  │
-│ Advanced Mid     │ 189              │ 7.8%  │
-│ Advanced High    │ 156              │ 6.5%  │
-│ Superior         │ 98               │ 4.1%  │
-└─────────────────────────────────────────────┘
-```
-
-#### Impact on Model Behavior
-
-1. **Underrepresented Classes Learn Poorly**: Classes with fewer samples (e.g., "Superior", "Novice Low") have lower accuracy
-2. **Biased Confidence Scores**: The model may overestimate confidence for well-represented classes
-3. **Prediction Bias**: The model has an implicit bias toward predicting classes it saw more frequently
-4. **Misleading Metrics**: Overall accuracy masks poor performance on minority classes
-
-#### Example:
-
-```
-Scenario: Model trained on 4x more Intermediate-High essays than Superior essays
-
-Result: When evaluating Superior level writing, the model:
-├─ Has lower precision/recall for "Superior"
-├─ May incorrectly classify it as "Advanced High"
-└─ Has less confident predictions for rare classes
-```
-
-### Why Class Weights Don't Fully Solve This
-
-While this implementation uses **class-weighted loss** during training to mitigate imbalance:
+This implementation uses **class-weighted loss** during training:
 
 ```python
 class_weights = torch.tensor([w1, w2, ..., w10])
 loss_fn = torch.nn.CrossEntropyLoss(weight=class_weights)
 ```
 
-This helps but doesn't eliminate the fundamental problem:
+**What it helps with:**
+✅ Prevents collapse of minority classes entirely  
+✅ Forces allocation of learning capacity to rare classes  
+✅ Improves per-class F1 compared to unweighted baseline
 
-- ✅ Prevents total collapse of minority class learning
-- ✅ Forces model to allocate learning to underrepresented classes
-- ❌ Cannot create information that doesn't exist in data
-- ❌ Limited by the sheer volume difference
-- ❌ May hurt majority class performance
+**What it can't fix:**
+❌ Cannot create information that doesn't exist  
+❌ Cannot overcome 1800:1 sample ratio (Novice Low : Superior)  
+❌ Limited by magnitude of imbalance  
 
-**Example Impact**: With current 145:312 Novice Low:Intermediate Mid ratio, even with weighting:
-- Novice Low accuracy: ~79% (lower)
-- Intermediate Mid accuracy: ~86% (higher)
+**Reality:** With only 1 Superior example vs. 1,833 Novice Low, no amount of weighting can solve the fundamental data shortage.
 
-### Critical Recommendation: Balanced Dataset
-
-**For production use, the dataset MUST be rebalanced before retraining:**
-
-#### Option 1: Equal Sampling (Recommended)
-
-```python
-# Collect equal number of samples per ACTFL level
-samples_per_class = 500  # Or your target number
-
-balanced_df = pd.DataFrame()
-for level in ACTFL_LABELS:
-    class_data = df[df['actfl_level'] == level]
-    
-    if len(class_data) < samples_per_class:
-        # Problem: Not enough data for this level
-        # Solution: Use data augmentation (paraphrasing, etc.)
-        print(f"⚠️ WARNING: {level} has only {len(class_data)} samples!")
-        sampled = class_data  # Use all available
-    else:
-        # Random sample exactly samples_per_class
-        sampled = class_data.sample(n=samples_per_class, random_state=42)
-    
-    balanced_df = pd.concat([balanced_df, sampled])
-
-# Result: 10 * 500 = 5,000 balanced samples
-balanced_df.to_csv("balanced_dataset.csv", index=False)
-```
-
-#### Option 2: Stratified Collection
-
-Collect essays proportionally but with minimum thresholds:
+### Why High Overall Accuracy is Misleading
 
 ```
-Target: Collect essays ensuring:
-├─ Every level: minimum 800 samples
-├─ Proportional distribution within that constraint
-└─ Preference for harder-to-find levels (Superior, Novice Low)
+Overall Accuracy = 92.91%
+This looks great until you check per-class:
+
+  Novice Low:      99.24% ✅ (1,833 examples)
+  Novice Mid:      92.02% ✅ (376 examples)
+  Novice High:     78.87% ⚠️ (142 examples)
+  Intermediate Low: 67.01% ⚠️ (97 examples)
+  Advanced Low:    70.49% ⚠️ (61 examples)
+  
+  Advanced High:    0.00% ❌ (only 3 examples)
+  Superior:         0.00% ❌ (only 1 example)
+  
+The 92.91% average is weighted by volume, not represented equally across classes.
+Macro F1 (0.44) is more honest — it shows average performance across all classes.
 ```
 
-#### Option 3: Data Augmentation
+### Critical Recommendations
 
-For underrepresented classes, use text augmentation techniques:
-
-```python
-from nlpaug.augmenter.sentence import ContextualWordEmbsAugmenter
-
-augmenter = ContextualWordEmbsAugmenter()
-
-# For "Superior" level (98 samples currently)
-# Generate synthetic samples to reach 500
-for i in range(402):  # Generate 402 more to reach 500
-    original_essay = superior_essays[i % len(superior_essays)]
-    augmented_essay = augmenter.augment(original_essay)
-    # Add to training set
+**For Research / Development:**
+```
+✅ Current model is suitable for:
+├─ Exploratory data analysis
+├─ Proof-of-concept prototypes
+├─ Screening coarse Novice-level writing
+└─ Understanding ACTFL classification task
 ```
 
-### Current Model Reliability by Level
-
-**Estimated reliability based on training data volume:**
-
-| Level | Samples | Reliability | Use Case |
-|-------|---------|-------------|----------|
-| Novice Mid | 289 | ⭐⭐⭐ Medium | Reasonable for screening |
-| Intermediate Mid | 312 | ⭐⭐⭐ Medium | Reasonable for screening |
-| Advanced Mid | 189 | ⭐⭐ Low | Use with caution |
-| Superior | 98 | ⭐ Very Low | **NOT RECOMMENDED** for production |
-| Novice Low | 145 | ⭐ Very Low | **NOT RECOMMENDED** for production |
-
-### What Needs to Happen for Production Release
-
-- [ ] **Collect Complete Dataset**: Ensure all 10 ACTFL levels have equal representation
-  - Target: 1,000+ essays per level (10,000+ total minimum)
-  - Current: ~2,400 total (imbalanced)
-
-- [ ] **Validate Balanced Training**: Retrain model on perfectly balanced dataset
-  - Expected performance gain: 5-10% accuracy improvement
-  - Especially for currently weak classes
-
-- [ ] **Cross-Validation**: Use k-fold cross-validation instead of single train/val split
-  - Better estimation of true model performance
-  - Detects overfitting to specific level distributions
-
-- [ ] **Domain Expert Review**: Have ACTFL experts validate predictions
-  - Especially for borderline cases (Novice High ↔ Intermediate Low)
-  - Calibrate confidence thresholds
-
-- [ ] **Real-world Testing**: Evaluate on held-out test set collected independently
-  - Ensures model generalizes beyond training distribution
-
-### Recommended Usage Until Full Release
-
+**For Production / High-Stakes Use:**
 ```
-✅ DO:
-├─ Use for research/exploration
-├─ Use for data with Intermediate levels (Mid, High)
-├─ Use for qualitative insights
-└─ Use with human review
-
-❌ DON'T:
-├─ Use for high-stakes decisions (admissions, certification)
-├─ Rely on Superior/Novice Low classifications
-├─ Use without human expert review
-└─ Claim production-ready accuracy
+❌ Current model is NOT suitable without:
+├─ Rebalanced dataset (1,000+ examples per level minimum)
+├─ Expert validation of edge cases
+├─ Per-class accuracy guarantees
+├─ Human review of Advanced/Superior classifications
+└─ Documented fallback (escalate to human if confidence < X%)
 ```
 
-### Data Collection Roadmap
+### Path to Production
 
-**Phase 1** (Current): Early exploration
-- 2,400 essays across 10 levels
-- Imbalanced distribution
-- Research/development use only
+Before using this model in production, you MUST:
 
-**Phase 2** (Next): Balanced dataset v1
-- Target: 5,000 essays (500 per level)
-- Stratified collection or augmentation
-- Retraining with new data
-- Validation: Internal testing
+1. **Collect Balanced Dataset**
+   - Goal: ≥1,000 essays per ACTFL level (10,000+ total)
+   - Use stratified sampling or multi-source collection
+   - Current: 2,596 total (highly imbalanced)
 
-**Phase 3**: Balanced dataset v2
-- Target: 10,000+ essays (1,000+ per level)
-- Multi-source data (not just ASAP)
-- Professional scoring
-- Validation: Independent test set
+2. **Retrain on Balanced Data**
+   - Run `train.py` with new dataset
+   - Expected improvement: +5-10% per-class accuracy
 
-**Phase 4**: Production release
-- ≥15,000 essays with balanced representation
-- Cross-validation results
-- Expert evaluation
-- Version 1.0 ready for production
+3. **Validate on Independent Test Set**
+   - Use k-fold cross-validation
+   - Ensure high per-class accuracy (≥80% per level)
+
+4. **Expert Review**
+   - Have ACTFL professionals review edge cases
+   - Calibrate confidence thresholds
+
+5. **Document & Release v1.0**
+   - Update this README with new metrics
+   - Tag release, document limitations clearly
+   - Publish reproduction steps
+
+### Model Development Status
+
+```
+Current Phase: Early Exploration
+├─ Dataset: 2,596 examples (imbalanced)
+├─ Use cases: Research, POC, development
+├─ Production ready: NO
+└─ Recommended: For development use only with caveats
+
+Next Phase: Balanced dataset v1 (planned)
+├─ Target: 5,000 examples (500 per level)
+├─ Augmentation: Text paraphrasing for rare classes
+├─ Retraining: Full pipeline
+└─ Validation: Internal k-fold cross-validation
+
+Final Phase: Production v1.0 (future)
+├─ Target: 15,000+ examples (1,500+ per level)
+├─ Validation: Independent expert review
+├─ Deployment: Docker, API, monitoring
+└─ SLA: Per-class accuracy ≥85%
+```
+
+---
+
+## 🤝 Contributing & Data Collection
+
+**Contributions are especially welcome** for underrepresented ACTFL levels. Because the current dataset is heavily imbalanced, additional high-quality essays—especially at Advanced and Superior levels—will directly improve model reliability.
+
+### How to Contribute
+
+**Option 1: Submit Writing Samples**
+- Anonymized essays tagged with ACTFL level
+- Format: CSV with columns `essay` and `actfl_level`
+- Guidelines: 100-200 words minimum, avoid copyrighted text
+- Submit via: Pull request, GitHub issue, or secure link
+
+**Option 2: Suggest Augmentation Strategies**
+- Paraphrasing techniques for minority classes
+- Data collection strategies from new sources
+- Rebalancing algorithms
+- Submit via: GitHub discussion or issue
+
+**Option 3: Code Contributions**
+- Improve evaluation metrics (per-class reports, calibration curves)
+- Add new preprocessing (spell-check, grammar filtering)
+- Implement ensemble models
+- Add API deployment (FastAPI, Docker)
+- Submit via: Pull request with description
+
+### Data Guidelines
+
+If submitting essays:
+✅ Fully anonymized (no names, IDs, institutions)  
+✅ ACTFL level labeled by expert or professional  
+✅ 100+ words per sample  
+✅ Diverse topics & genres  
+✅ Original or properly licensed text
+
+❌ No copyrighted text, homework, plagiarized content
 
 ---
 
 ## 🐛 Troubleshooting
 
-### 1. **CUDA Out of Memory**
+### CUDA Out of Memory
 ```
 RuntimeError: CUDA out of memory
 ```
 **Solution:**
-- Reduce batch size: `per_device_train_batch_size=4`
-- Reduce max length: `max_length=128`
-- Use gradient accumulation: `gradient_accumulation_steps=2`
+```powershell
+# In train.py, reduce batch size:
+# per_device_train_batch_size=4  # was 8
 
-### 2. **Missing Dataset File**
+# Or reduce sequence length:
+# max_length=128  # was 256
+
+# Or use gradient accumulation:
+# gradient_accumulation_steps=2
+```
+
+### Missing Dataset
 ```
 FileNotFoundError: asap_actfl_labeled.csv not found
 ```
 **Solution:**
-- Ensure CSV is in project root: `ls asap_actfl_labeled.csv`
-- Format: CSV with columns `essay` and `actfl_level`
+```powershell
+# Run data preparation first:
+python script.py
+```
 
-### 3. **Model Doesn't Load**
+### Model Doesn't Load
 ```
 RuntimeError: Cannot find safetensors model
 ```
 **Solution:**
-- Check `distilbert-actfl-english/` contains:
-  ```bash
-  ls -la distilbert-actfl-english/
-  ```
-- Re-download or retrain model
+```powershell
+# Verify model exists:
+ls distilbert-actfl-english/
+# Should contain: config.json, model.safetensors, tokenizer.json, vocab.txt
 
-### 4. **Poor Predictions**
-**Check:**
-- Model file integrity: Try reloading
-- Input text quality: Remove HTML, fix encoding
-- Retrain with more data: Current model may be overfit
+# If missing, retrain:
+python train.py
+```
 
-### 5. **Slow Inference**
+### Poor Predictions
+**Checklist:**
+- Verify model file integrity (try reloading)
+- Check input text (remove HTML, fix encoding)
+- Consider class imbalance (see [Limitations](#️-limitations--reliability))
+- For Advanced/Superior: expect low accuracy (see confusion matrix)
+
+### Slow Inference
 **Solutions:**
-- Use GPU: Ensure `torch.cuda.is_available() == True`
-- Quantize model: Use `torch.quantization` for 4x speedup
-- Batch inference: Process multiple essays together
+- Use GPU: `torch.cuda.is_available()`
+- Quantize model for 4x speedup
+- Batch multiple essays together
 
 ---
 
-## 🔗 Related Resources
+## 📄 License & Contact
+
+**License:** MIT — see `LICENSE` file
+
+**Author:** Avijit Roy  
+**Website:** [avijitroy.com](https://avijitroy.com/)  
+**LinkedIn:** [/in/HeyAvijitRoy](https://www.linkedin.com/in/HeyAvijitRoy/)
+
+**Questions or issues?** Open a GitHub issue or reach out via LinkedIn.
+
+---
+
+## 📖 Additional Resources
 
 - [ACTFL Proficiency Guidelines](https://www.actfl.org/guidance/actfl-proficiency-guidelines-2012)
 - [DistilBERT Paper](https://arxiv.org/abs/1910.01108)
-- [Transformers Documentation](https://huggingface.co/docs/transformers)
+- [Hugging Face Transformers](https://huggingface.co/docs/transformers)
 - [ASAP Dataset](https://www.kaggle.com/competitions/asap-aes/data)
-- [CommonLit Dataset](https://www.kaggle.com/datasets/shayanfazeli/commonlit-readability-prize)
+- [CommonLit Readability](https://www.kaggle.com/datasets/shayanfazeli/commonlit-readability-prize)
+- [Gradio Documentation](https://gradio.app/docs)
 
 ---
 
-## 📝 Citation
-
-If you use this project in research, please cite:
-
-```bibtex
-@project{actfl_classifier,
-  title={ACTFL English Writing Proficiency Classifier},
-  year={2025},
-  url={<repository-url>}
-}
-```
-
----
-
-## 📄 License
-
-This project is provided as-is for educational and research purposes.
-
----
-
-## 🤝 Contributing
-
-Contributions welcome! Areas for improvement:
-
-- [ ] Multi-language support
-- [ ] Real-time confidence calibration
-- [ ] Explanation generation (why this level?)
-- [ ] Ensemble models for higher accuracy
-- [ ] API endpoint deployment (FastAPI)
-- [ ] Model quantization for mobile
-
----
-
-## ❓ FAQ
-
-**Q: Can I use this for non-English languages?**
-A: Currently designed for English. DistilBERT-multilingual-base-cased can be adapted.
-
-**Q: What's the minimum essay length?**
-A: Works with any length, but ≥50 words recommended for reliable classification.
-
-**Q: How often should I retrain?**
-A: Retrain when predictions drift or new data becomes available (quarterly recommended).
-
-**Q: Can I deploy this in production?**
-A: Yes! Consider containerizing with Docker and using FastAPI for an API server.
-
-**Q: Is this GDPR compliant?**
-A: Model doesn't store data. Ensure your deployment practices comply with regulations.
-
----
-
-## Contributing
-
-Contributions are welcome — especially **new, high-quality data for underrepresented ACTFL proficiency levels** (Advanced High and Superior).  
-Because the current dataset is heavily imbalanced, additional essays at the higher proficiency bands will significantly improve model reliability and overall performance.
-
-### How you can contribute
-- Submit anonymized writing samples tagged with the correct ACTFL level  
-- Propose new augmentation or rebalancing strategies  
-- Improve evaluation scripts or add new metrics  
-- Refine preprocessing, tokenization, or training workflows  
-- Submit issues or pull requests for bugs, documentation, or feature ideas
-
-### Data contribution guidelines
-If you are contributing writing samples:
-- Ensure all text is **fully anonymized**  
-- Confirm the **ACTFL level label** is accurate  
-- Include at least **100–200 words per sample**  
-- Avoid copyrighted or proprietary text  
-
-You may contribute data via:
-- Pull request  
-- Secure shared link  
-- Issue describing the dataset and method of contribution  
-
-Your contributions will directly help improve model accuracy and reduce bias across ACTFL levels.
-
----
-
-
-## Connect With Me
-
-[![LinkedIn](https://img.shields.io/badge/-LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/HeyAvijitRoy/)
-[![Website](https://img.shields.io/badge/-avijitroy.com-000000?style=flat&logo=githubpages&logoColor=white)](https://avijitroy.com)
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-_“I build tools that solve real problems — secure, fast, and privacy-first.”_
-
-Built by [Avijit Roy](https://avijitroy.com).
-
+_"Building tools to solve real problems — secure, fast, and privacy-first."_
