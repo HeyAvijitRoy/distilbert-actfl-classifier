@@ -1,0 +1,9 @@
+pandas
+numpy
+datasets
+transformers
+torch
+scikit-learn
+huggingface_hub
+gradio
+accelerate
